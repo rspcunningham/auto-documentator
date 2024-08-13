@@ -1,0 +1,26 @@
+name: Test Update Documentation Action
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-update-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Call Update Documentation Action
+      uses: ./action
+      with:
+        main_repo_owner: 'rspcunningham'
+        main_repo_name: 'auto-documentator'
+        main_github_directory_path: '.'
+        docs_repo_owner: 'rspcunningham'
+        docs_repo_name: 'auto-documentator'
+        docs_github_directory_path: 'docs_test'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
