@@ -20,8 +20,8 @@ inputs:
   docs_github_directory_path:
     description: 'The GitHub directory path of the documentation repository (ie. path to the docs directory)'
     required: true
-  github_token:
-    description: 'GitHub token for authentication'
+  token:
+    description: 'Access token for authentication'
     required: true
   
 runs:
@@ -42,7 +42,7 @@ runs:
       run: python ${{ github.action_path }}/script.py ${{ inputs.main_repo_owner }} ${{ inputs.main_repo_name }} ${{ inputs.main_github_directory_path }} ${{ inputs.docs_repo_owner }} ${{ inputs.docs_repo_name }} ${{ inputs.docs_github_directory_path }}
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
+        GITHUB_TOKEN: ${{ inputs.token }}
 
     - name: Commit and push changes
       run: |
