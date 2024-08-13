@@ -84,6 +84,9 @@ def upload_file_to_github(repo_owner, repo_name, file_path, content, token):
         print(f"Failed to upload {file_path} to {repo_owner}/{repo_name}: {response.status_code}")
         print(response.json())
 
+    print("Response status code:", response.status_code)
+    print("Response content:", response.json())
+
 if __name__ == "__main__":
     if len(sys.argv) != 7:
         print("Usage: python script.py <main_repo_owner> <main_repo_name> <main_github_directory_path> <docs_repo_owner> <docs_repo_name> <docs_github_directory_path>")
