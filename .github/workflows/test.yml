@@ -27,4 +27,4 @@ jobs:
         docs_repo_owner: 'rspcunningham'
         docs_repo_name: 'auto-documentator'
         docs_github_directory_path: 'docs_test'
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
