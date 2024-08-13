@@ -59,25 +59,27 @@ def fetch_python_files_from_github_directory(repo_owner, repo_name, directory_pa
 
 def upload_file_to_github(repo_owner, repo_name, file_path, content, token):
     url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
-    message = f"Update {file_path}"
+    message = f"Auto-update documentation: {file_path}"
     content_base64 = base64.b64encode(content.encode('utf-8')).decode('utf-8')
     
     # Check if the file already exists
     response = requests.get(url, headers={"Authorization": f"token {token}"})
+    
+    data = {
+        "message": message,
+        "content": content_base64,
+        "committer": {
+            "name": "github-actions[bot]",
+            "email": "github-actions[bot]@users.noreply.github.com"
+        }
+    }
+
     if response.status_code == 200:
-        sha = response.json()['sha']
-        data = {
-            "message": message,
-            "content": content_base64,
-            "sha": sha
-        }
-    else:
-        data = {
-            "message": message,
-            "content": content_base64
-        }
+        data['sha'] = response.json()['sha']
+
     
     response = requests.put(url, json=data, headers={"Authorization": f"token {token}"})
+
     if response.status_code in [200, 201]:
         print(f"Successfully uploaded {file_path} to {repo_owner}/{repo_name}")
     else:
