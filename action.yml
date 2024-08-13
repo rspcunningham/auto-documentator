@@ -58,4 +58,4 @@ runs:
         fi
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
+        GITHUB_TOKEN: ${{ inputs.token }}
