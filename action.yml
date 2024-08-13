@@ -1,0 +1,55 @@
+name: Update Documentation
+description: Update the documentation of a GitHub repository in a markdown site (ie. Docusaurus)
+
+inputs:
+  main_repo_owner:
+    description: 'The owner of the module repository'
+    required: true
+  main_repo_name:
+    description: 'The name of the module repository'
+    required: true
+  main_github_directory_path:
+    description: 'The GitHub directory path of the module repository (ie. path to the directory you want to document)'
+    required: true
+  docs_repo_owner:
+    description: 'The owner of the documentation repository'
+    required: true
+  docs_repo_name:
+    description: 'The name of the documentation repository'
+    required: true
+  docs_github_directory_path:
+    description: 'The GitHub directory path of the documentation repository (ie. path to the docs directory)'
+    required: true
+  
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+      shell: bash
+
+    - name: Run the documentation update script
+      run: python script.py ${{ inputs.main_repo_owner }} ${{ inputs.main_repo_name }} ${{ inputs.main_github_directory_path }} ${{ inputs.docs_repo_owner }} ${{ inputs.docs_repo_name }} ${{ inputs.docs_github_directory_path }}
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Commit and push changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add ../docs/docs/reference/
+        git commit -m "Update documentation"
+        git push
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
