@@ -22,23 +22,25 @@ def parse_content(content, file_name, module_name):
 
 
     module_doc = extract_docstring(tree)
-    markdown = ""
 
     if file_name == "__init__":
         # Format the title differently for __init__.py
-        markdown += f"# Introduction to {module_name}\n\n"
+        markdown = f"# Introduction to {module_name}\n\n"
+    else:
+        markdown = f"# {module[0]}.*{module[1]}*\n\n"
     
     if module_doc:
         markdown += f"{module_doc}\n\n"
 
     module = [module_name, file_name]
-    markdown = f"# {module[0]}.*{module[1]}*\n\n"
 
     for node in ast.iter_child_nodes(tree):
         if isinstance(node, ast.ClassDef):
             markdown += format_class(node, module)
         elif isinstance(node, ast.FunctionDef):
             markdown += format_function(node, module)
+        elif isinstance(node, ast.Assign) and isinstance(node.value, ast.Call):
+            markdown += format_type_alias(node, module)
 
     return markdown
 
@@ -89,11 +91,17 @@ def format_function(node, module=None):
     markdown += f"{extract_docstring(node)}\n\n"
     return markdown
 
-import ast
-import re
-
-import ast
-import re
+def format_type_alias(node, module=None):
+    if isinstance(node.targets[0], ast.Name):
+        alias_name = node.targets[0].id
+        alias_value = ast.unparse(node.value)
+        docstring = extract_docstring(node)
+        markdown = f"### Type Alias: {alias_name}\n\n"
+        markdown += f"```python\n{alias_name} = {alias_value}\n```\n\n"
+        if docstring:
+            markdown += f"{docstring}\n\n"
+        return markdown
+    return ""
 
 def extract_docstring(node):
     docstring = ast.get_docstring(node)
