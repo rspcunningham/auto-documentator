@@ -148,21 +148,25 @@ def format_type_alias(node, module=None):
     if isinstance(node, ast.AnnAssign):
         alias_name = node.target.id
         alias_value = ast.unparse(node.annotation)
-        docstring = extract_docstring(node)
     elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
         alias_name = node.targets[0].id
         alias_value = ast.unparse(node.value)
-        try: 
-            extract_docstring(node)
-        except Exception as e:
-            docstring = e
     else:
         return ""
     
     markdown = f"### Type Alias: {alias_name}\n\n"
     markdown += f"```python\n{alias_name} = {alias_value}\n```\n\n"
-    if docstring:
-        markdown += f"{docstring}\n\n"
+    
+    # Look for a string expression immediately following the assignment
+    parent = getattr(node, 'parent', None)
+    if parent and isinstance(parent, ast.Module):
+        next_node_index = parent.body.index(node) + 1
+        if next_node_index < len(parent.body):
+            next_node = parent.body[next_node_index]
+            if isinstance(next_node, ast.Expr) and isinstance(next_node.value, ast.Str):
+                description = next_node.value.s
+                markdown += f"{description}\n\n"
+    
     return markdown
 
 
