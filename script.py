@@ -36,7 +36,7 @@ def parse_content(content, file_name, module_name):
             markdown += format_class(node, module)
         elif isinstance(node, ast.FunctionDef):
             markdown += format_function(node, module)
-        elif isinstance(node, ast.Assign) and isinstance(node.value, ast.Call):
+        elif isinstance(node, ast.AnnAssign) or (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)):
             markdown += format_type_alias(node, module)
 
     return markdown
