@@ -10,7 +10,16 @@ def parse_content(
     ...
 ```
 
+Parse the content of a Python file and generate a markdown document.
 
+Args:
+    `content` (`str`):
+        The content of the Python file.
+    `module_name` (`str`):
+        The name of the module.
+
+Returns:
+    str: The markdown content.
 
 ### Function: format_class
 
