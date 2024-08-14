@@ -60,7 +60,7 @@ def format_class(node, module=None):
 def format_method(node, module=None):
     # Determine if the method is a class method or an instance method
     method_type = "Instance Method"
-    if node.args.args and node.args.args[0].arg == 'cls':
+    if node.args.args and node.args.args[0].arg != 'self':
         method_type = "Class Method"
     
     markdown = f"### {method_type}: {node.name}\n\n"
