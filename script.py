@@ -69,6 +69,9 @@ def format_function(node):
     markdown += f"{extract_docstring(node)}\n\n"
     return markdown
 
+import ast
+import re
+
 def extract_docstring(node):
     docstring = ast.get_docstring(node)
     if docstring:
@@ -79,7 +82,29 @@ def extract_docstring(node):
             min_indent = min(len(line) - len(line.lstrip()) for line in lines[1:] if line.strip())
             # Remove exactly this amount of indentation from each line
             dedented_lines = [lines[0]] + [line[min_indent:] if line.strip() else '' for line in lines[1:]]
-            return '\n'.join(dedented_lines)
+            
+            # Format Args section
+            formatted_lines = []
+            in_args_section = False
+            args_pattern = re.compile(r'(\w+)\s*\((.+?)\):\s*(.+)')
+            
+            for line in dedented_lines:
+                if line.strip().lower().startswith('args:'):
+                    in_args_section = True
+                    formatted_lines.append(line)
+                elif in_args_section:
+                    match = args_pattern.match(line.strip())
+                    if match:
+                        arg_name, arg_type, arg_desc = match.groups()
+                        formatted_lines.append(f"    `{arg_name}` (`{arg_type}`):")
+                        formatted_lines.append(f"        {arg_desc}")
+                    else:
+                        in_args_section = False
+                        formatted_lines.append(line)
+                else:
+                    formatted_lines.append(line)
+            
+            return '\n'.join(formatted_lines)
         return docstring
     return ""
 
