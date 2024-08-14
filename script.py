@@ -18,6 +18,15 @@ def parse_content(content, file_name, module_name):
     Returns:
         str: The markdown content.
     """
+    class ParentNodeVisitor(ast.NodeVisitor):
+        def visit(self, node):
+            for child in ast.iter_child_nodes(node):
+                child.parent = node
+            self.generic_visit(node)
+
+    tree = ast.parse(content)
+    ParentNodeVisitor().visit(tree)
+
     tree = ast.parse(content)
     module = [module_name, file_name]
     module_doc = extract_docstring(tree)
@@ -59,13 +68,13 @@ def format_class(node, module=None):
 
 def format_method(node, module=None):
     # Determine if the method is a class method or an instance method
-    method_type = "Instance Method"
+    method_type = "Instance method"
     if node.args.args and node.args.args[0].arg != 'self':
-        method_type = "Class Method"
+        method_type = "Class method"
     
     markdown = f"### {method_type}: {node.name}\n\n"
     markdown += "```python\n"
-    markdown += f"{module[0]}.{module[1]}.{module[2]}.{node.name}("
+    markdown += f"{module[0]}.{module[1]}.{module[2]}{'()' if method_type == "Class method" else ''}.{node.name}("
     
     args = []
     for arg in node.args.args:
@@ -143,7 +152,10 @@ def format_type_alias(node, module=None):
     elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
         alias_name = node.targets[0].id
         alias_value = ast.unparse(node.value)
-        docstring = "Could not extract docstring for this type alias."
+        try: 
+            extract_docstring(node)
+        except Exception as e:
+            docstring = e
     else:
         return ""
     
