@@ -19,8 +19,8 @@ def parse_content(content, file_name, module_name):
         str: The markdown content.
     """
     tree = ast.parse(content)
-    module = f'{module_name}.*{file_name}*'
-    markdown = f"# {module}\n\n"
+    module = [module_name, file_name]
+    markdown = f"# {module[0]}.*{module[1]}*\n\n"
 
     module_doc = extract_docstring(tree)
     if module_doc:
@@ -36,7 +36,7 @@ def parse_content(content, file_name, module_name):
 
 def format_class(node, module=None):
     markdown = f"## Class: {node.name}\n\n"
-    markdown += f"```python\n{module}.{node.name}"
+    markdown += f"```python\n{module[0]}.{module[1]}.{node.name}"
     if node.bases:
         base_classes = ", ".join(ast.unparse(base) for base in node.bases)
         markdown += f"({base_classes})"
@@ -47,7 +47,7 @@ def format_class(node, module=None):
 def format_function(node, module=None):
     markdown = f"### Function: {node.name}\n\n"
     markdown += "```python\n"
-    markdown += f"{module}.{node.name}("
+    markdown += f"{module[0]}.{module[1]}.{node.name}("
     
     args = []
     for arg in node.args.args:
@@ -208,9 +208,9 @@ if __name__ == "__main__":
         
         markdown_content = parse_content(file_content, file_name, main_github_directory_path)
 
-        if file_name == '__init__.py':
+        if file_name == '__init__':
             output_file = '0_intro.md'
         else: 
-            output_file = file_name.replace('.py', '.md')
+            output_file = f"{file_name}.md"
 
         upload_file_to_github(docs_repo_owner, docs_repo_name, f"{docs_github_directory_path}/{output_file}", markdown_content, token)
