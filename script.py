@@ -99,7 +99,7 @@ def format_method(node, module=None):
     
     markdown = f"### {method_type}: {node.name}\n\n"
     markdown += "```python\n"
-    markdown += f"{module[0]}.{module[1]}.{module[2]}{'()' if method_type == 'Class method' else ''}.{node.name}("
+    markdown += f"{module[0]}.{module[1]}.{module[2]}{'()' if method_type == 'Instance method' else ''}.{node.name}("
     markdown += format_args(node)
     markdown += ")\n```\n\n"
     markdown += f"{extract_docstring(node)}\n\n"
@@ -124,7 +124,7 @@ def extract_docstring(node):
             
             formatted_lines = []
             current_section = None
-            pattern = re.compile(r'(?:(\w+)\s*)?(\((.+?)\))?:\s*(.+)')
+            pattern = re.compile(r'(?:([\w\.\[\]]+)\s*)?(?:\(([\w\.\[\]]+)\))?\s*:\s*(.+)')
             
             for line in dedented_lines:
                 lower_line = line.strip().lower()
