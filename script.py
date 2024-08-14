@@ -202,11 +202,11 @@ if __name__ == "__main__":
     
     for file_path in python_files:
         file_name = os.path.basename(file_path)
-        module_name = file_name.replace('.py', '')
+        file_name = file_name.replace('.py', '')
         
         file_content = fetch_github_file_content(main_repo_owner, main_repo_name, file_path)
         
-        markdown_content = parse_content(file_content, module_name)
+        markdown_content = parse_content(file_content, file_name, main_github_directory_path)
 
         if file_name == '__init__.py':
             output_file = '0_intro.md'
