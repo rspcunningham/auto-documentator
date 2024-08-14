@@ -143,7 +143,7 @@ def format_type_alias(node, module=None):
     elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
         alias_name = node.targets[0].id
         alias_value = ast.unparse(node.value)
-        docstring = extract_comment_docstring(node)
+        docstring = "Could not extract docstring for this type alias."
     else:
         return ""
     
@@ -153,35 +153,6 @@ def format_type_alias(node, module=None):
         markdown += f"{docstring}\n\n"
     return markdown
 
-def extract_comment_docstring(node):
-    """
-    Extracts a comment-based docstring immediately preceding a node.
-    
-    Args:
-        node (ast.AST): The AST node to extract the comment-based docstring for.
-    
-    Returns:
-        str: The extracted comment-based docstring, or None if not found.
-    """
-    if not hasattr(node, 'lineno'):
-        return None
-    
-    # Read the source file
-    with open(node.root.filename, 'r') as file:
-        lines = file.readlines()
-    
-    # Extract comments preceding the node
-    comments = []
-    for i in range(node.lineno - 2, -1, -1):
-        line = lines[i].strip()
-        if line.startswith('#'):
-            comments.append(line[1:].strip())
-        else:
-            break
-    
-    if comments:
-        return '\n'.join(reversed(comments))
-    return None
 
 def extract_docstring(node):
     docstring = ast.get_docstring(node)
