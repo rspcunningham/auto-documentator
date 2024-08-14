@@ -27,7 +27,7 @@ def parse_content(content, file_name, module_name):
         # Format the title differently for __init__.py
         markdown = f"# Introduction to {module_name}\n\n"
     else:
-        markdown = f"# {module[0]}.*{module[1]}*\n\n"
+        markdown = f"# {module[1]}\n\n"
     
     if module_doc:
         markdown += f"{module_doc}\n\n"
