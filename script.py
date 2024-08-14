@@ -5,7 +5,7 @@ import requests
 import base64
 
 import ast
-import textwrap
+import re
 
 def parse_content(content, file_name, module_name):
     """
