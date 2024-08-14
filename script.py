@@ -72,7 +72,15 @@ def format_function(node):
 def extract_docstring(node):
     docstring = ast.get_docstring(node)
     if docstring:
-        return textwrap.dedent(docstring).strip()
+        # Preserve original indentation
+        lines = docstring.split('\n')
+        if len(lines) > 1:
+            # Find the minimum indentation (excluding empty lines)
+            min_indent = min(len(line) - len(line.lstrip()) for line in lines[1:] if line.strip())
+            # Remove exactly this amount of indentation from each line
+            dedented_lines = [lines[0]] + [line[min_indent:] if line.strip() else '' for line in lines[1:]]
+            return '\n'.join(dedented_lines)
+        return docstring
     return ""
 
 def fetch_github_file_content(repo_owner, repo_name, file_path):
