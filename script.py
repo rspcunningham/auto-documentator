@@ -19,12 +19,20 @@ def parse_content(content, file_name, module_name):
         str: The markdown content.
     """
     tree = ast.parse(content)
-    module = [module_name, file_name]
-    markdown = f"# {module[0]}.*{module[1]}*\n\n"
+
 
     module_doc = extract_docstring(tree)
+    markdown = ""
+
+    if file_name == "__init__":
+        # Format the title differently for __init__.py
+        markdown += f"# {module_name}\n\n"
+    
     if module_doc:
         markdown += f"{module_doc}\n\n"
+
+    module = [module_name, file_name]
+    markdown = f"# {module[0]}.*{module[1]}*\n\n"
 
     for node in ast.iter_child_nodes(tree):
         if isinstance(node, ast.ClassDef):
