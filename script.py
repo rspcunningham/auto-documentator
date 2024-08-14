@@ -45,10 +45,36 @@ def parse_content(content, file_name, module_name):
             markdown += format_class(node, module)
         elif isinstance(node, ast.FunctionDef):
             markdown += format_function(node, module)
-        elif isinstance(node, ast.AnnAssign) or (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)):
-            markdown += format_type_alias(node, module)
 
     return markdown
+
+def format_args(node):
+    args = []
+    for arg in node.args.args:
+        arg_str = arg.arg
+        if arg.annotation:
+            arg_str += f": {ast.unparse(arg.annotation)}"
+        args.append(arg_str)
+    
+    if node.args.vararg:
+        args.append(f"*{node.args.vararg.arg}")
+    
+    if node.args.kwonlyargs:
+        if not node.args.vararg:
+            args.append("*")
+        for arg in node.args.kwonlyargs:
+            arg_str = arg.arg
+            if arg.annotation:
+                arg_str += f": {ast.unparse(arg.annotation)}"
+            args.append(arg_str)
+    
+    if node.args.kwarg:
+        args.append(f"**{node.args.kwarg.arg}")
+    
+    formatted_args = ",\n    ".join(args)
+    if len(args) > 1:
+        return "\n    " + formatted_args + "\n"
+    return formatted_args
 
 def format_class(node, module=None):
     markdown = f"## Class: {node.name}\n\n"
@@ -59,7 +85,7 @@ def format_class(node, module=None):
     markdown += ":\n    ...\n```\n\n"
     markdown += f"{extract_docstring(node)}\n\n"
 
-        # Process methods of the class
+    # Process methods of the class
     for child in ast.iter_child_nodes(node):
         if isinstance(child, ast.FunctionDef):
             markdown += format_method(child, module + [node.name])
@@ -67,108 +93,26 @@ def format_class(node, module=None):
     return markdown
 
 def format_method(node, module=None):
-    # Determine if the method is a class method or an instance method
     method_type = "Instance method"
     if node.args.args and node.args.args[0].arg != 'self':
         method_type = "Class method"
     
     markdown = f"### {method_type}: {node.name}\n\n"
     markdown += "```python\n"
-    markdown += f"{module[0]}.{module[1]}.{module[2]}{'()' if method_type == "Class method" else ''}.{node.name}("
-    
-    args = []
-    for arg in node.args.args:
-        arg_str = arg.arg
-        if arg.annotation:
-            arg_str += f": {ast.unparse(arg.annotation)}"
-        args.append(arg_str)
-    
-    if node.args.vararg:
-        args.append(f"*{node.args.vararg.arg}")
-    
-    if node.args.kwonlyargs:
-        if not node.args.vararg:
-            args.append("*")
-        for arg in node.args.kwonlyargs:
-            arg_str = arg.arg
-            if arg.annotation:
-                arg_str += f": {ast.unparse(arg.annotation)}"
-            args.append(arg_str)
-    
-    if node.args.kwarg:
-        args.append(f"**{node.args.kwarg.arg}")
-    
-    formatted_args = ",\n    ".join(args)
-    if len(args) > 1:
-        markdown += "\n    " + formatted_args + "\n"
-    
+    markdown += f"{module[0]}.{module[1]}.{module[2]}{'()' if method_type == 'Class method' else ''}.{node.name}("
+    markdown += format_args(node)
     markdown += ")\n```\n\n"
     markdown += f"{extract_docstring(node)}\n\n"
     return markdown
-
 
 def format_function(node, module=None):
     markdown = f"### Function: {node.name}\n\n"
     markdown += "```python\n"
     markdown += f"{module[0]}.{module[1]}.{node.name}("
-    
-    args = []
-    for arg in node.args.args:
-        arg_str = arg.arg
-        if arg.annotation:
-            arg_str += f": {ast.unparse(arg.annotation)}"
-        args.append(arg_str)
-    
-    if node.args.vararg:
-        args.append(f"*{node.args.vararg.arg}")
-    
-    if node.args.kwonlyargs:
-        if not node.args.vararg:
-            args.append("*")
-        for arg in node.args.kwonlyargs:
-            arg_str = arg.arg
-            if arg.annotation:
-                arg_str += f": {ast.unparse(arg.annotation)}"
-            args.append(arg_str)
-    
-    if node.args.kwarg:
-        args.append(f"**{node.args.kwarg.arg}")
-    
-    formatted_args = ",\n    ".join(args)
-    if len(args) > 1:
-        markdown += "\n    " + formatted_args + "\n"
-    else:
-        markdown += formatted_args
-    
+    markdown += format_args(node)
     markdown += "):\n    ...\n```\n\n"
     markdown += f"{extract_docstring(node)}\n\n"
     return markdown
-
-def format_type_alias(node, module=None):
-    if isinstance(node, ast.AnnAssign):
-        alias_name = node.target.id
-        alias_value = ast.unparse(node.annotation)
-    elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
-        alias_name = node.targets[0].id
-        alias_value = ast.unparse(node.value)
-    else:
-        return ""
-    
-    markdown = f"### Type Alias: {alias_name}\n\n"
-    markdown += f"```python\n{alias_name} = {alias_value}\n```\n\n"
-    
-    # Look for a string expression immediately following the assignment
-    parent = getattr(node, 'parent', None)
-    if parent and isinstance(parent, ast.Module):
-        next_node_index = parent.body.index(node) + 1
-        if next_node_index < len(parent.body):
-            next_node = parent.body[next_node_index]
-            if isinstance(next_node, ast.Expr) and isinstance(next_node.value, ast.Str):
-                description = next_node.value.s
-                markdown += f"{description}\n\n"
-    
-    return markdown
-
 
 def extract_docstring(node):
     docstring = ast.get_docstring(node)
