@@ -134,8 +134,7 @@ def format_function(node, module=None):
     markdown += "):\n    ...\n```\n\n"
     markdown += f"{extract_docstring(node)}\n\n"
     return markdown
-
-def format_type_alias(node, module=None):
+def format_type_alias(node, module=None, filename=None):
     if isinstance(node, ast.AnnAssign):
         alias_name = node.target.id
         alias_value = ast.unparse(node.annotation)
@@ -143,7 +142,7 @@ def format_type_alias(node, module=None):
     elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
         alias_name = node.targets[0].id
         alias_value = ast.unparse(node.value)
-        docstring = extract_comment_docstring(node)
+        docstring = extract_comment_docstring(node, filename)
     else:
         return ""
     
@@ -153,12 +152,13 @@ def format_type_alias(node, module=None):
         markdown += f"{docstring}\n\n"
     return markdown
 
-def extract_comment_docstring(node):
+def extract_comment_docstring(node, filename):
     """
     Extracts a comment-based docstring immediately preceding a node.
     
     Args:
         node (ast.AST): The AST node to extract the comment-based docstring for.
+        filename (str): The name of the file containing the node.
     
     Returns:
         str: The extracted comment-based docstring, or None if not found.
@@ -167,7 +167,7 @@ def extract_comment_docstring(node):
         return None
     
     # Read the source file
-    with open(node.root.filename, 'r') as file:
+    with open(filename, 'r') as file:
         lines = file.readlines()
     
     # Extract comments preceding the node
