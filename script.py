@@ -32,7 +32,7 @@ def parse_content(content, file_name, module_name):
         markdown += f"{module_doc}\n\n"
 
     module = [module_name, file_name]
-    markdown = f"# {module[0]}.*{module[1]}*\n\n"
+    markdown = f"# {module[1]}\n\n"
 
     for node in ast.iter_child_nodes(tree):
         if isinstance(node, ast.ClassDef):
