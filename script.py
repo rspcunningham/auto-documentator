@@ -58,7 +58,12 @@ def format_class(node, module=None):
     return markdown
 
 def format_method(node, module=None):
-    markdown = f"#### Method: {node.name}\n\n"
+    # Determine if the method is a class method or an instance method
+    method_type = "Instance Method"
+    if node.args.args and node.args.args[0].arg == 'cls':
+        method_type = "Class Method"
+    
+    markdown = f"### {method_type}: {node.name}\n\n"
     markdown += "```python\n"
     markdown += f"{module[0]}.{module[1]}.{module[2]}.{node.name}("
     
