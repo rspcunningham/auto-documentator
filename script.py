@@ -19,8 +19,7 @@ def parse_content(content, file_name, module_name):
         str: The markdown content.
     """
     tree = ast.parse(content)
-
-
+    module = [module_name, file_name]
     module_doc = extract_docstring(tree)
 
     if file_name == "__init__":
@@ -31,8 +30,6 @@ def parse_content(content, file_name, module_name):
     
     if module_doc:
         markdown += f"{module_doc}\n\n"
-
-    module = [module_name, file_name]
 
     for node in ast.iter_child_nodes(tree):
         if isinstance(node, ast.ClassDef):
