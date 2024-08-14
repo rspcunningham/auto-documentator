@@ -101,13 +101,13 @@ def extract_docstring(node):
             for line in dedented_lines:
                 if line.strip().lower().startswith('args:'):
                     in_args_section = True
-                    formatted_lines.append(line)
+                    formatted_lines.append("#### Arguments:\n")
                 elif in_args_section:
                     match = args_pattern.match(line.strip())
                     if match:
                         arg_name, arg_type, arg_desc = match.groups()
-                        formatted_lines.append(f"    `{arg_name}` (`{arg_type}`):")
-                        formatted_lines.append(f"        {arg_desc}")
+                        formatted_lines.append(f"    `{arg_name}` (`{arg_type}`):\n")
+                        formatted_lines.append(f"        {arg_desc}\n")
                     else:
                         in_args_section = False
                         formatted_lines.append(line)
