@@ -124,7 +124,7 @@ def extract_docstring(node):
             
             formatted_lines = []
             current_section = None
-            pattern = re.compile(r'(\w+)\s*(\((.+?)\))?:\s*(.+)')
+            pattern = re.compile(r'(?:(\w+)\s*)?(\((.+?)\))?:\s*(.+)')
             
             for line in dedented_lines:
                 lower_line = line.strip().lower()
