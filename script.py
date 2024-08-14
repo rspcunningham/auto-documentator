@@ -8,6 +8,16 @@ import ast
 import textwrap
 
 def parse_content(content, module_name):
+    """
+    Parse the content of a Python file and generate a markdown document.
+
+    Args:
+        content (str): The content of the Python file.
+        module_name (str): The name of the module.
+    
+    Returns:
+        str: The markdown content.
+    """
     tree = ast.parse(content)
     markdown = f"# {module_name}\n\n"
     module_doc = extract_docstring(tree)
