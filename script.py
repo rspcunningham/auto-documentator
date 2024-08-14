@@ -7,7 +7,7 @@ import base64
 import ast
 import textwrap
 
-def parse_content(content, module_name):
+def parse_content(content, file_name, module_name):
     """
     Parse the content of a Python file and generate a markdown document.
 
@@ -19,22 +19,24 @@ def parse_content(content, module_name):
         str: The markdown content.
     """
     tree = ast.parse(content)
-    markdown = f"# {module_name}\n\n"
+    module = f'{module_name}.*{file_name}*'
+    markdown = f"# {module}\n\n"
+
     module_doc = extract_docstring(tree)
     if module_doc:
         markdown += f"{module_doc}\n\n"
 
     for node in ast.iter_child_nodes(tree):
         if isinstance(node, ast.ClassDef):
-            markdown += format_class(node)
+            markdown += format_class(node, module)
         elif isinstance(node, ast.FunctionDef):
-            markdown += format_function(node)
+            markdown += format_function(node, module)
 
     return markdown
 
-def format_class(node):
+def format_class(node, module=None):
     markdown = f"## Class: {node.name}\n\n"
-    markdown += f"```python\nclass {node.name}"
+    markdown += f"```python\n{module}.{node.name}"
     if node.bases:
         base_classes = ", ".join(ast.unparse(base) for base in node.bases)
         markdown += f"({base_classes})"
@@ -42,10 +44,10 @@ def format_class(node):
     markdown += f"{extract_docstring(node)}\n\n"
     return markdown
 
-def format_function(node):
+def format_function(node, module=None):
     markdown = f"### Function: {node.name}\n\n"
     markdown += "```python\n"
-    markdown += f"def {node.name}("
+    markdown += f"{module}.{node.name}("
     
     args = []
     for arg in node.args.args:
@@ -205,6 +207,7 @@ if __name__ == "__main__":
         file_content = fetch_github_file_content(main_repo_owner, main_repo_name, file_path)
         
         markdown_content = parse_content(file_content, module_name)
+
         if file_name == '__init__.py':
             output_file = '0_intro.md'
         else: 
