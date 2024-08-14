@@ -82,39 +82,43 @@ def format_function(node):
 import ast
 import re
 
+import ast
+import re
+
 def extract_docstring(node):
     docstring = ast.get_docstring(node)
     if docstring:
-        # Preserve original indentation
         lines = docstring.split('\n')
         if len(lines) > 1:
-            # Find the minimum indentation (excluding empty lines)
             min_indent = min(len(line) - len(line.lstrip()) for line in lines[1:] if line.strip())
-            # Remove exactly this amount of indentation from each line
             dedented_lines = [lines[0]] + [line[min_indent:] if line.strip() else '' for line in lines[1:]]
             
-            # Format Args section
             formatted_lines = []
-            in_args_section = False
-            args_pattern = re.compile(r'(\w+)\s*\((.+?)\):\s*(.+)')
+            current_section = None
+            pattern = re.compile(r'(\w+)\s*(\((.+?)\))?:\s*(.+)')
             
             for line in dedented_lines:
-                if line.strip().lower().startswith('args:'):
-                    in_args_section = True
-                    formatted_lines.append("#### Arguments:\n")
-                elif in_args_section:
-                    match = args_pattern.match(line.strip())
+                lower_line = line.strip().lower()
+                if lower_line.startswith(('args:', 'returns:', 'raises:')):
+                    current_section = lower_line[:-1]  # remove the colon
+                    formatted_lines.append(f"#### {current_section.capitalize()}:\n")
+                elif current_section:
+                    match = pattern.match(line.strip())
                     if match:
-                        arg_name, arg_type, arg_desc = match.groups()
-                        formatted_lines.append(f"    `{arg_name}` (`{arg_type}`):\n")
-                        formatted_lines.append(f"        {arg_desc}\n")
+                        name, _, type_, desc = match.groups()
+                        if current_section == 'args':
+                            formatted_lines.append(f"- `{name}` (`{type_}`): {desc}\n")
+                        elif current_section == 'returns':
+                            formatted_lines.append(f"- `{type_}`: {desc}\n")
+                        elif current_section == 'raises':
+                            formatted_lines.append(f"- `{name}`: {desc}\n")
                     else:
-                        in_args_section = False
-                        formatted_lines.append(line)
+                        current_section = None
+                        formatted_lines.append(line + '\n')
                 else:
-                    formatted_lines.append(line)
+                    formatted_lines.append(line + '\n')
             
-            return '\n'.join(formatted_lines)
+            return ''.join(formatted_lines)
         return docstring
     return ""
 
