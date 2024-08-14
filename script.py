@@ -4,33 +4,76 @@ import os
 import requests
 import base64
 
-def extract_docstring(node):
-    if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.Module)):
-        docstring = ast.get_docstring(node)
-        return docstring if docstring else "No docstring provided."
-    return None
+import ast
+import textwrap
 
 def parse_content(content, module_name):
     tree = ast.parse(content)
-    
     markdown = f"# {module_name}\n\n"
-    
     module_doc = extract_docstring(tree)
     if module_doc:
         markdown += f"{module_doc}\n\n"
-    
-    for node in ast.walk(tree):
+
+    for node in ast.iter_child_nodes(tree):
         if isinstance(node, ast.ClassDef):
-            markdown += f"## Class: {node.name}\n\n"
-            markdown += f"```python\nclass {node.name}\n```\n\n"
-            markdown += f"{extract_docstring(node)}\n\n"
-            
+            markdown += format_class(node)
         elif isinstance(node, ast.FunctionDef):
-            markdown += f"### Function: {node.name}\n\n"
-            markdown += f"```python\ndef {node.name}{ast.unparse(node.args)}\n```\n\n"
-            markdown += f"{extract_docstring(node)}\n\n"
-    
+            markdown += format_function(node)
+
     return markdown
+
+def format_class(node):
+    markdown = f"## Class: {node.name}\n\n"
+    markdown += f"```python\nclass {node.name}"
+    if node.bases:
+        base_classes = ", ".join(ast.unparse(base) for base in node.bases)
+        markdown += f"({base_classes})"
+    markdown += ":\n    ...\n```\n\n"
+    markdown += f"{extract_docstring(node)}\n\n"
+    return markdown
+
+def format_function(node):
+    markdown = f"### Function: {node.name}\n\n"
+    markdown += "```python\n"
+    markdown += f"def {node.name}("
+    
+    args = []
+    for arg in node.args.args:
+        arg_str = arg.arg
+        if arg.annotation:
+            arg_str += f": {ast.unparse(arg.annotation)}"
+        args.append(arg_str)
+    
+    if node.args.vararg:
+        args.append(f"*{node.args.vararg.arg}")
+    
+    if node.args.kwonlyargs:
+        if not node.args.vararg:
+            args.append("*")
+        for arg in node.args.kwonlyargs:
+            arg_str = arg.arg
+            if arg.annotation:
+                arg_str += f": {ast.unparse(arg.annotation)}"
+            args.append(arg_str)
+    
+    if node.args.kwarg:
+        args.append(f"**{node.args.kwarg.arg}")
+    
+    formatted_args = ",\n    ".join(args)
+    if len(args) > 1:
+        markdown += "\n    " + formatted_args + "\n"
+    else:
+        markdown += formatted_args
+    
+    markdown += "):\n    ...\n```\n\n"
+    markdown += f"{extract_docstring(node)}\n\n"
+    return markdown
+
+def extract_docstring(node):
+    docstring = ast.get_docstring(node)
+    if docstring:
+        return textwrap.dedent(docstring).strip()
+    return ""
 
 def fetch_github_file_content(repo_owner, repo_name, file_path):
     url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
