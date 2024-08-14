@@ -134,7 +134,7 @@ def extract_docstring(node):
                 elif current_section:
                     match = pattern.match(line.strip())
                     if match:
-                        name, _, type_, desc = match.groups()
+                        name, type_, desc = match.groups()
                         if current_section == 'args':
                             formatted_lines.append(f"- `{name}` (`{type_}`): {desc}\n")
                         elif current_section == 'returns':
