@@ -49,7 +49,49 @@ def format_class(node, module=None):
         markdown += f"({base_classes})"
     markdown += ":\n    ...\n```\n\n"
     markdown += f"{extract_docstring(node)}\n\n"
+
+        # Process methods of the class
+    for child in ast.iter_child_nodes(node):
+        if isinstance(child, ast.FunctionDef):
+            markdown += format_method(child, module + [node.name])
+
     return markdown
+
+def format_method(node, module=None):
+    markdown = f"#### Method: {node.name}\n\n"
+    markdown += "```python\n"
+    markdown += f"{module[0]}.{module[1]}.{module[2]}.{node.name}("
+    
+    args = []
+    for arg in node.args.args:
+        arg_str = arg.arg
+        if arg.annotation:
+            arg_str += f": {ast.unparse(arg.annotation)}"
+        args.append(arg_str)
+    
+    if node.args.vararg:
+        args.append(f"*{node.args.vararg.arg}")
+    
+    if node.args.kwonlyargs:
+        if not node.args.vararg:
+            args.append("*")
+        for arg in node.args.kwonlyargs:
+            arg_str = arg.arg
+            if arg.annotation:
+                arg_str += f": {ast.unparse(arg.annotation)}"
+            args.append(arg_str)
+    
+    if node.args.kwarg:
+        args.append(f"**{node.args.kwarg.arg}")
+    
+    formatted_args = ",\n    ".join(args)
+    if len(args) > 1:
+        markdown += "\n    " + formatted_args + "\n"
+    
+    markdown += ")\n```\n\n"
+    markdown += f"{extract_docstring(node)}\n\n"
+    return markdown
+
 
 def format_function(node, module=None):
     markdown = f"### Function: {node.name}\n\n"
