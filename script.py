@@ -138,7 +138,7 @@ def extract_docstring(node):
                         if current_section == 'args':
                             formatted_lines.append(f"- `{name}` (`{type_}`): {desc}\n")
                         elif current_section == 'returns':
-                            formatted_lines.append(f"- `{type_}`: {desc}\n")
+                            formatted_lines.append(f"- `{name}`: {desc}\n")
                         elif current_section == 'raises':
                             formatted_lines.append(f"- `{name}`: {desc}\n")
                     else:
