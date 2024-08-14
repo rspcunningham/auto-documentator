@@ -26,7 +26,7 @@ def parse_content(content, file_name, module_name):
 
     if file_name == "__init__":
         # Format the title differently for __init__.py
-        markdown += f"# {module_name}\n\n"
+        markdown += f"# Introduction to {module_name}\n\n"
     
     if module_doc:
         markdown += f"{module_doc}\n\n"
