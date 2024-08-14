@@ -136,16 +136,52 @@ def format_function(node, module=None):
     return markdown
 
 def format_type_alias(node, module=None):
-    if isinstance(node.targets[0], ast.Name):
+    if isinstance(node, ast.AnnAssign):
+        alias_name = node.target.id
+        alias_value = ast.unparse(node.annotation)
+        docstring = extract_docstring(node)
+    elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
         alias_name = node.targets[0].id
         alias_value = ast.unparse(node.value)
-        docstring = extract_docstring(node)
-        markdown = f"### Type Alias: {alias_name}\n\n"
-        markdown += f"```python\n{alias_name} = {alias_value}\n```\n\n"
-        if docstring:
-            markdown += f"{docstring}\n\n"
-        return markdown
-    return ""
+        docstring = extract_comment_docstring(node)
+    else:
+        return ""
+    
+    markdown = f"### Type Alias: {alias_name}\n\n"
+    markdown += f"```python\n{alias_name} = {alias_value}\n```\n\n"
+    if docstring:
+        markdown += f"{docstring}\n\n"
+    return markdown
+
+def extract_comment_docstring(node):
+    """
+    Extracts a comment-based docstring immediately preceding a node.
+    
+    Args:
+        node (ast.AST): The AST node to extract the comment-based docstring for.
+    
+    Returns:
+        str: The extracted comment-based docstring, or None if not found.
+    """
+    if not hasattr(node, 'lineno'):
+        return None
+    
+    # Read the source file
+    with open(node.root.filename, 'r') as file:
+        lines = file.readlines()
+    
+    # Extract comments preceding the node
+    comments = []
+    for i in range(node.lineno - 2, -1, -1):
+        line = lines[i].strip()
+        if line.startswith('#'):
+            comments.append(line[1:].strip())
+        else:
+            break
+    
+    if comments:
+        return '\n'.join(reversed(comments))
+    return None
 
 def extract_docstring(node):
     docstring = ast.get_docstring(node)
