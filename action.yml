@@ -43,19 +43,3 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
-
-    - name: Commit and push changes
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git pull
-        if [[ -n $(git status -s) ]]; then
-          git add .
-          git commit -m "Auto-update documentation"
-          git push
-        else
-          echo "No changes to commit"
-        fi
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ inputs.token }}
